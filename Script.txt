@@ -1,0 +1,113 @@
+--// FFS
+--// AUTO ON
+--// Speed 25.5
+--// Semua Light OFF
+--// Shadow OFF
+--// Effects lain KEKAL
+
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local LocalPlayer = Players.LocalPlayer
+local WALK_SPEED = 25.5
+
+--==================================================
+-- SPEED
+--==================================================
+
+local function ApplySpeed()
+	local character = LocalPlayer.Character
+	if not character then return end
+
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+	if humanoid then
+		humanoid.WalkSpeed = WALK_SPEED
+	end
+end
+
+--==================================================
+-- BUANG SEMUA CAHAYA
+--==================================================
+
+local function DisableLight(obj)
+	if obj:IsA("PointLight")
+		or obj:IsA("SpotLight")
+		or obj:IsA("SurfaceLight") then
+
+		obj.Enabled = false
+	end
+end
+
+local function RemoveAllLights()
+	for _, obj in ipairs(Lighting:GetDescendants()) do
+		DisableLight(obj)
+	end
+
+	for _, obj in ipairs(Workspace:GetDescendants()) do
+		DisableLight(obj)
+	end
+end
+
+--==================================================
+-- SHADOW OFF
+--==================================================
+
+local function RemoveShadow(obj)
+	if obj:IsA("BasePart") then
+		obj.CastShadow = false
+	end
+end
+
+local function RemoveAllShadows()
+	Lighting.GlobalShadows = false
+
+	for _, obj in ipairs(Workspace:GetDescendants()) do
+		RemoveShadow(obj)
+	end
+end
+
+--==================================================
+-- AUTO DETECT OBJECT BARU
+--==================================================
+
+Lighting.DescendantAdded:Connect(function(obj)
+	task.defer(function()
+		DisableLight(obj)
+	end)
+end)
+
+Workspace.DescendantAdded:Connect(function(obj)
+	task.defer(function()
+		DisableLight(obj)
+		RemoveShadow(obj)
+	end)
+end)
+
+--==================================================
+-- CHARACTER
+--==================================================
+
+LocalPlayer.CharacterAdded:Connect(function()
+	task.wait(0.25)
+	ApplySpeed()
+	RemoveAllLights()
+	RemoveAllShadows()
+end)
+
+--==================================================
+-- AUTO ON
+--==================================================
+
+ApplySpeed()
+RemoveAllLights()
+RemoveAllShadows()
+
+RunService.RenderStepped:Connect(function()
+	ApplySpeed()
+	Lighting.GlobalShadows = false
+end)
+
+print("FFS loaded | Speed 25.5 | Lights OFF | Shadows OFF")
